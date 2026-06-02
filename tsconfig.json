@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "ignoreDeprecations": "6.0",
+    "esModuleInterop": true,
+    "baseUrl": ".",
+    "paths": {
+      "@pages/*": ["page-objects/pages/*"],
+      "@tests/*": ["tests/*"],
+      "@utils/*": ["utils/*"],
+      "@fixtures/*": ["settings/fixtures/*"],
+      "@env/*": ["settings/env/*"],
+      "@config/*": ["settings/config/*"]
+    }
+  },
+  "exclude": ["node_modules", "dist", "test-results", "playwright-report"]
+}
