@@ -1,28 +1,32 @@
+/**
+ * Test: sort stability with equal-priced items
+ * Validates the sort behaviour when there are items in the cart and when
+ * multiple products share the same price (ordering should remain stable).
+ */
 import { TestUsers } from "@env/test-users";
 import { expect, test } from "@fixtures/ui.fixture";
 
 test("sort works with cart items and equal-price order stays stable", async ({
     page,
     signInPage,
+    inventoryPage,
 }) => {
     await signInPage.login(TestUsers.standardUser.username, TestUsers.standardUser.password);
 
     await expect(page).toHaveURL(/inventory\.html/);
 
-    const sortDropdown = page.locator('[data-test="product-sort-container"]');
-    const cartBadge = page.locator('[data-test="shopping-cart-badge"]');
-    const backpackButton = page.locator('[data-test="add-to-cart-sauce-labs-backpack"]');
-    const onesieButton = page.locator('[data-test="add-to-cart-sauce-labs-onesie"]');
+    const sortDropdown = inventoryPage.elements.sortDropdown();
+    const cartBadge = inventoryPage.elements.cartBadge();
 
-    await backpackButton.click();
-    await onesieButton.click();
+    await inventoryPage.addToCart('sauce-labs-backpack');
+    await inventoryPage.addToCart('sauce-labs-onesie');
 
     await expect(cartBadge).toHaveText("2");
 
     await sortDropdown.selectOption("hilo");
 
-    const highToLowProducts = await page.locator(".inventory_item_name").allTextContents();
-    const highToLowPrices = await page.locator(".inventory_item_price").allTextContents();
+    const highToLowProducts = await inventoryPage.getProductNames();
+    const highToLowPrices = await inventoryPage.getProductPrices();
 
     expect(highToLowProducts).toEqual([
         "Sauce Labs Fleece Jacket",
@@ -35,14 +39,14 @@ test("sort works with cart items and equal-price order stays stable", async ({
 
     expect(highToLowPrices).toEqual(["$49.99", "$29.99", "$15.99", "$15.99", "$9.99", "$7.99"]);
     await expect(cartBadge).toHaveText("2");
-    await expect(page.locator('[data-test="remove-sauce-labs-backpack"]')).toHaveText("Remove");
-    await expect(page.locator('[data-test="remove-sauce-labs-onesie"]')).toHaveText("Remove");
+    await expect(inventoryPage.elements.removeFromCart('sauce-labs-backpack')).toHaveText("Remove");
+    await expect(inventoryPage.elements.removeFromCart('sauce-labs-onesie')).toHaveText("Remove");
     await expect(page.locator('[data-test^="add-to-cart-"]')).toHaveCount(4);
 
     await sortDropdown.selectOption("lohi");
 
-    const lowToHighProducts = await page.locator(".inventory_item_name").allTextContents();
-    const lowToHighPrices = await page.locator(".inventory_item_price").allTextContents();
+    const lowToHighProducts = await inventoryPage.getProductNames();
+    const lowToHighPrices = await inventoryPage.getProductPrices();
 
     expect(lowToHighProducts).toEqual([
         "Sauce Labs Onesie",
@@ -66,7 +70,7 @@ test("sort works with cart items and equal-price order stays stable", async ({
 
     await sortDropdown.selectOption("hilo");
 
-    const secondHighToLowProducts = await page.locator(".inventory_item_name").allTextContents();
+    const secondHighToLowProducts = await inventoryPage.getProductNames();
     const secondHighToLowEqualPriceNames = secondHighToLowProducts.filter((name) =>
         ["Sauce Labs Bolt T-Shirt", "Test.allTheThings() T-Shirt (Red)"].includes(name),
     );

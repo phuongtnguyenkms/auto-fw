@@ -1,19 +1,23 @@
+/**
+ * Test: sort resets after logout and re-login
+ * Ensures that changing the sort order, logging out, and logging back in
+ * returns the inventory list to the application's default sort state.
+ */
 import { TestUsers } from "@env/test-users";
 import { expect, test } from "@fixtures/ui.fixture";
 
-test("sort resets after logout and re-login", async ({ page, signInPage }) => {
+test("sort resets after logout and re-login", async ({ page, signInPage, inventoryPage }) => {
     await signInPage.login(TestUsers.standardUser.username, TestUsers.standardUser.password);
 
     await expect(page).toHaveURL(/inventory\.html/);
 
-    const sortDropdown = page.locator('[data-test="product-sort-container"]');
+    const sortDropdown = inventoryPage.elements.sortDropdown();
     await expect(sortDropdown).toBeVisible();
     await sortDropdown.selectOption("za");
     await expect(sortDropdown).toHaveValue("za");
     await expect(sortDropdown.locator("option:checked")).toHaveText("Name (Z to A)");
 
-    await page.getByRole("button", { name: "Open Menu" }).click();
-    await page.getByRole("link", { name: "Logout" }).click();
+    await inventoryPage.openMenuAndLogout();
 
     await expect(page.getByRole("textbox", { name: "Username" })).toBeVisible();
 
@@ -25,7 +29,7 @@ test("sort resets after logout and re-login", async ({ page, signInPage }) => {
     await expect(sortDropdown).toHaveValue("az");
     await expect(sortDropdown.locator("option:checked")).toHaveText("Name (A to Z)");
 
-    const productNames = await page.locator(".inventory_item_name").allTextContents();
+    const productNames = await inventoryPage.getProductNames();
 
     expect(productNames).toEqual([
         "Sauce Labs Backpack",
